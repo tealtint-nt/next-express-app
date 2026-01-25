@@ -126,15 +126,22 @@ export function useChatSocket({ username }: UseChatSocketProps) {
       });
     };
 
+    // offerを受け取った時の処理
+    const handleOffer = async (userSocketId: string, offer: RTCSessionDescription, name: string) => {
+      console.log('handleOffer');
+    };
+
     // socket.on で、サーバーからのイベントを受信
     socket.on("message:new", handleNewMessage);
     socket.on("users:update", handleUsersUpdate);
     socket.on("user:typing", handleUserTyping);
+    socket.on("offer", handleOffer);
 
     return () => {
       socket.off("message:new", handleNewMessage);
       socket.off("users:update", handleUsersUpdate);
       socket.off("user:typing", handleUserTyping);
+      socket.off("offer", handleOffer);
     };
   }, [username, isSocketInitialized, currentUserSocketId]);
 
@@ -188,6 +195,33 @@ export function useChatSocket({ username }: UseChatSocketProps) {
     [username, currentUserSocketId]
   );
 
+
+  const sendOffer = useCallback(
+    async (stream: MediaStream) => {
+      const peer = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.services.mozilla.com' },
+          { urls: 'stun:stun.l.google.com:19302' },
+        ],
+      });
+      stream.getTracks().forEach(track => peer.addTrack(track, stream));
+
+      const offer = await peer.createOffer();
+      await peer.setLocalDescription(offer);
+      peer.onicecandidate = async (evt) => {
+        if (evt.candidate) {
+          return false
+        }
+
+        for (const user of users) {
+          if (!peer.localDescription) continue;
+          socket.emit('offer', user.id, peer.localDescription);
+        }
+      }
+    },
+    [username, currentUserSocketId]
+  );
+
   /**
    * ユーザーのアバター位置を更新する
    */
@@ -223,5 +257,6 @@ export function useChatSocket({ username }: UseChatSocketProps) {
     sendTypingUpdate,
     sendUserMove,
     logout,
+    sendOffer,
   };
 }

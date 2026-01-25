@@ -126,6 +126,19 @@ app.prepare().then(() => {
       }
     });
 
+    // 配信側からのオファー送信
+    socket.on("offer", (toSocketId, offer) => {
+      const userData = users.get(socket.id);
+      console.log('offer', offer);
+      socket.to(toSocketId).emit("offer", userData.id, offer, userData.name);
+    });
+
+    // 受信側からのアンサーを配信側へ渡す
+    socket.on("answer", ({ answer }) => {
+      console.log('answer', socket.id)
+      io.emit("answer", { cid: socket.id, answer })
+    });
+
     // クライアントとの接続が切断された際の処理
     socket.on("disconnect", () => {
       const userData = users.get(socket.id);

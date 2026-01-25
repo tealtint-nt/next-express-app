@@ -40,6 +40,7 @@ export default function ChatPage() {
     sendTypingUpdate,
     sendUserMove,
     logout,
+    sendOffer,
   } = useChatSocket({ username });
 
   /**
@@ -102,6 +103,8 @@ export default function ChatPage() {
   };
 
 
+
+
   /**
    * 画面キャプチャ開始
    */
@@ -110,8 +113,12 @@ export default function ChatPage() {
     const videoElem = videoRef.current;
     const options = { audio: true, video: true };
     const stream = await navigator.mediaDevices.getDisplayMedia(options);
+
+    sendOffer(stream)
+
     videoElem.srcObject = stream;
     setDisplayMediaStatus("start");
+
   };
 
   /**

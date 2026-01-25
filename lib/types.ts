@@ -30,6 +30,7 @@ export interface ServerToClientEvents {
     name: string;
     isTyping: boolean;
   }) => void;
+  "offer": (userSocketId: string, offer: RTCSessionDescription, name: string) => void;
 }
 
 export interface ClientToServerEvents {
@@ -37,4 +38,6 @@ export interface ClientToServerEvents {
   "message:send": (message: Omit<Message, "id">) => void;
   "user:move": (position: { x: number; y: number }) => void;
   "user:typing": (isTyping: boolean) => void;
+  "offer": (toSocketId: string, offer: RTCSessionDescription) => void;
+  "answer": () => void;
 }
